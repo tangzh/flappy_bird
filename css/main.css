@@ -3,3 +3,46 @@
   -webkit-box-sizing: border-box; 
   box-sizing: border-box; 
 }
+
+.canvas {
+  width: 360px;
+  height: 560px;
+  border: 1px solid black;
+  margin: auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.column {
+	width: 50px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+
+}
+
+.column-top, .column-bottom {
+  position: absolute;
+  width: 100%;
+  background-color: green;
+  left: 0;
+}
+
+.column-top {
+  /* height: 80px; */
+  top: 0;
+}
+
+.column-bottom {
+  /* height: 380px; */
+  bottom: 0;
+}
+
+.bird {
+  background-color: yellow;
+  border-radius: 50%;
+  height: 30px;
+  width: 30px;
+  position: absolute;
+  z-index: 1000;
+}
