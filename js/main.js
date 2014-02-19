@@ -48,8 +48,6 @@ Column.prototype.render = function() {
   }   
 };
 
-
-
 Column.prototype.move = function() {
   var _this = this;
   _this.x = _this.x - settings.speed;
@@ -118,7 +116,7 @@ Bird.prototype.jump = function() {
   _this.render();
 };
 
-function Background() {
+function Scene() {
   // this.randomTopHeight = function() {
   //   return Math.max(50, Math.random() * (settings.screenHeight - settings.gutter));
   // };
@@ -128,7 +126,7 @@ function Background() {
    this.cols = [];
       
   for(var i = FIRST; i < settings.screenWidth; i += (settings.space+settings.colWidth)) {
-    var th = Background.randomTopHeight();
+    var th = Scene.randomTopHeight();
         col = new Column(i, th);
     col.render();
     this.cols.push(col);
@@ -163,20 +161,20 @@ function Background() {
   });
 };
 
-Background.randomTopHeight = function() {
+Scene.randomTopHeight = function() {
   return Math.max(50, Math.random() * (settings.screenHeight - settings.gutter));
 };
 
-Background.prototype.getOffset = function(last) {
+Scene.prototype.getOffset = function(last) {
   var rightEdge = last.x + settings.colWidth,
       rightDis = settings.screenWidth - rightEdge;
 
   return settings.space - rightDis;
 };
 
-Background.prototype.addCol = function(offset) {
+Scene.prototype.addCol = function(offset) {
   var _this = this,
-      th = Background.randomTopHeight(),
+      th = Scene.randomTopHeight(),
       col = new Column(settings.screenWidth + offset, th);
 
   col.render();
@@ -186,6 +184,6 @@ Background.prototype.addCol = function(offset) {
 
 
 (function() {
-  var bg = new Background();
+  var scene = new Scene();
 })();
 
