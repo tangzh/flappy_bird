@@ -5,13 +5,13 @@ var settings = {
   space: 120.0,
   screenWidth: 360.0,
   screenHeight: 560.0,
-  speed: 6.0,
-  interval: 400,
+  speed: 4.0,
+  interval: 100,
   birdSpeed : 20.0,
   birdSize: 30,
   birdLeft: 80,
   jumpHeight: 25,
-  $canvas: $('.canvas')
+  ctx: document.getElementById('canvas').getContext('2d')
 };
 
 function Column(x,th) {
@@ -21,48 +21,26 @@ function Column(x,th) {
 }
 
 Column.prototype.render = function() {
-  //render the following html
-  /*<div class="column">
-      <div class="column-top"></div>
-      <div class="column-bottom"></div>
-    </div>*/
-
   var _this = this;
 
-  if (_this.$elem) {
-    _this.$elem.css('left', _this.x + 'px');
-  }else {
-    var $container = settings.$canvas,
-        $column = $('<div class="column"></div>')
-          .css('left', _this.x + 'px'),
-        $topColumn = $('<div class="column-top"></div>')
-          .height(_this.topHeight),
-        $bottomColumn = $('<div class="column-bottom"></div>')
-          .height(_this.bottomHeight);
+  var ctx = settings.ctx;
+  
+  ctx.fillStyle = "green";
+  //draw the top part
+  ctx.fillRect(_this.x, 0, settings.colWidth, _this.topHeight);
 
-    $column.append($topColumn)
-      .append($bottomColumn);
-
-    $container.append($column);
-    _this.$elem = $column;
-  }   
+  //draw the bottom part
+  ctx.fillRect(_this.x, settings.screenHeight - _this.bottomHeight, settings.colWidth, _this.bottomHeight);
 };
 
 Column.prototype.move = function() {
   var _this = this;
-  _this.x = _this.x - settings.speed;
-  if( _this.x < -settings.colWidth) {
-    _this.destroy();
-  }else {
-     _this.render();
-  }
-};
-
-Column.prototype.destroy = function() {
-  this.$elem.remove();
+  _this.x -= settings.speed;
 };
 
 function Bird(height, position) {
+  //height: bottom
+  //position: left
   this.height = height;
   this.position = position;
 }
@@ -85,29 +63,20 @@ Bird.prototype.isCollided = function(cols) {
 };
 
 Bird.prototype.render = function() {
-  //<div class="bird"></div>
-  var _this = this;
+  var cx = this.position + settings.birdSize / 2,
+      cy = settings.screenHeight - settings.birdSize / 2 - this.height,
+      startAngle = 0;
+      endAngle = 2 * Math.PI;
+      ctx = settings.ctx;
 
-  if(_this.$elem){
-     _this.$elem.css('bottom', _this.height + 'px');
-  }else{
-      $container = settings.$canvas,
-      $bird = $('<div class="bird"></div>')
-              .css({
-                'bottom': _this.height + 'px',
-                'left': _this.position + 'px'
-              });
-    $container.append($bird);
-    _this.$elem = $bird;
-  }
-     
-
+  ctx.fillStyle = 'yellow';
+  ctx.arc(cx, cy, settings.birdSize / 2, startAngle, endAngle);
+  ctx.fill();
 };
 
 Bird.prototype.move = function() {
   var _this = this;
   _this.height -= settings.birdSpeed;
-  _this.render();
 };
 
 Bird.prototype.jump = function() {
@@ -117,43 +86,31 @@ Bird.prototype.jump = function() {
 };
 
 function Scene() {
-  // this.randomTopHeight = function() {
-  //   return Math.max(50, Math.random() * (settings.screenHeight - settings.gutter));
-  // };
-
-   var FIRST = 0,
-     _this = this;
-   this.cols = [];
-      
-  for(var i = FIRST; i < settings.screenWidth; i += (settings.space+settings.colWidth)) {
-    var th = Scene.randomTopHeight();
-        col = new Column(i, th);
-    col.render();
-    this.cols.push(col);
-  }
+   var _this = this;
+   
+   _this.initCols();
 
   var bird = new Bird(settings.screenHeight/2, settings.birdLeft);
-  bird.render();
 
   var intervalID = setInterval(function() {
     var last = _this.cols[_this.cols.length - 1],
         offset = _this.getOffset(last);
     
+    // if(bird.isCollided(_this.cols)) {
+    //   alert("Hahaha, YOU DIE!");
+    //   clearInterval(intervalID);
+    // }
 
-    if(bird.isCollided(_this.cols)) {
-      alert("Hahaha, YOU DIE!");
-      clearInterval(intervalID);
-    }
-    bird.move();
+    _this.render(_this.cols, bird);
+    
 
     if(offset >= 0){
       _this.addCol(offset);
     }
 
-    $.each(_this.cols, function() {
-      this.move();
+    _this.moveCols();
+    bird.move();
 
-    });
   }, settings.interval);
 
   $('body').keydown(function() {
@@ -162,7 +119,12 @@ function Scene() {
 };
 
 Scene.randomTopHeight = function() {
-  return Math.max(50, Math.random() * (settings.screenHeight - settings.gutter));
+  var h = Math.max(50, Math.random() * (settings.screenHeight - settings.gutter));
+  return h;
+};
+
+Scene.clear = function() {
+  settings.ctx.clearRect(0, 0, settings.screenWidth, settings.screenHeight);
 };
 
 Scene.prototype.getOffset = function(last) {
@@ -181,6 +143,46 @@ Scene.prototype.addCol = function(offset) {
   _this.cols.push(col);
 };
 
+Scene.prototype.render = function(cols, bird) {
+  //clear the canvas;
+  Scene.clear();
+
+  for (var i=0;cols[i];i++) {
+    cols[i].render();
+  }
+  bird.render();
+};
+
+Scene.prototype.initCols = function() {
+  var _this = this,
+      first = 0,
+      x = first;
+
+  this.cols = [];
+
+  for(var x = first; x < settings.screenWidth; x += (settings.space + settings.colWidth)) {
+    var th = Scene.randomTopHeight();
+    this.cols.push(new Column(x, th));
+  }
+};
+
+Scene.prototype.moveCols = function() {
+  var _this = this,
+      tempCols = [];
+
+  $.each(_this.cols, function() {
+    this.move();
+  });
+  
+  //Remove the cols that out of the canvas
+  $.each(_this.cols, function(i, col) {
+    if (col.x >= -settings.colWidth) {
+      tempCols.push(col);
+    }
+  });
+
+  _this.cols = tempCols;
+};
 
 
 (function() {
