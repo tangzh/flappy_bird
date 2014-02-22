@@ -4,13 +4,8 @@
   box-sizing: border-box; 
 }
 
-.canvas {
-  width: 360px;
-  height: 560px;
+#canvas {
   border: 1px solid black;
-  margin: auto;
-  position: relative;
-  overflow: hidden;
 }
 
 .column {
